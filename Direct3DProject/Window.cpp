@@ -4,16 +4,35 @@
 
 Window::Window(int spawnX, int spawnY, int length, int height, HINSTANCE hInst, WNDPROC WndProc)
 {
-	
+	this->length = length;
+	this->height = height;
 
+	//Name for the window
 	const auto windowName = L"D3DWindow";
-	WNDCLASSEX window = { sizeof(window), CS_OWNDC, WndProc, 0, 0, hInst, nullptr, nullptr, nullptr, nullptr, windowName, nullptr };
+
+	//Setting parameters for the Window
+	WNDCLASSEX window = { 0 };
+	window.cbSize = sizeof(window);
+	window.style = CS_OWNDC;
+	window.lpfnWndProc = WndProc;
+	window.cbClsExtra = 0;
+	window.cbWndExtra = 0;
+	window.hInstance = hInst;
+	window.hIcon = nullptr;
+	window.hCursor = nullptr;
+	window.hbrBackground = nullptr;
+	window.lpszMenuName = nullptr;
+	window.lpszClassName = windowName;
+	window.hIconSm = nullptr;
+
+	//Registers Window
 	RegisterClassEx(&window);
 
+	//Creates Window
 	HWND windowHandle = CreateWindowEx(
 		0,
 		windowName,
-		L"D3D Bottle Display",
+		L"D3D Bottle Project",
 		WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU,
 		spawnX,
 		spawnY,
@@ -30,7 +49,14 @@ Window::Window(int spawnX, int spawnY, int length, int height, HINSTANCE hInst, 
 	ShowWindow(windowHandle, SW_SHOW);
 }
 
-void Window::Update(MSG* pMsg)
+Window::~Window()
 {
-	DispatchMessage(pMsg);
+	DestroyWindow(windowHandle);
+}
+
+MSG Window::Update(MSG msg)
+{
+	TranslateMessage(&msg);
+	DispatchMessage(&msg);
+	return msg;
 }

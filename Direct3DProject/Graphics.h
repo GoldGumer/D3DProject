@@ -10,12 +10,12 @@
 class Graphics
 {
 public:
-	Graphics(HWND* windowHandle);
+	Graphics(HWND* pHWnd);
 	~Graphics();
 	void UpdateScreen();
 	void AddToDraw(float x, float y, float z);
 private:
-	std::list<Vertex> vertexList;
+	std::list<Vertex> vertices;
 
 	ID3D11Device* pDevice = nullptr;
 	IDXGISwapChain* pSwap = nullptr;

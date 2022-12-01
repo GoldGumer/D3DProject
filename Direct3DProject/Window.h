@@ -6,9 +6,10 @@ class Window
 {
 public:
 	Window(int spawnX, int spawnY, int length, int height, HINSTANCE hInst, WNDPROC WndProc);
-	void Update(MSG* pMsg);
+	~Window();
+	MSG Update(MSG msg);
 private:
-	int spawnX, spawnY, length, height;
+	int length, height;
 	HWND windowHandle;
 };
 

@@ -10,6 +10,9 @@ LRESULT CALLBACK WndProc(
 {
 	switch (msg)
 	{
+	case WM_QUIT:
+		PostQuitMessage(20);
+		break;
 	}
 
 	return DefWindowProc( hWnd, msg, wParam, lParam );
@@ -27,7 +30,9 @@ int CALLBACK WinMain(
 	MSG msg;
 	bool result;
 
-	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) window.Update(&msg);
+	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) msg = window.Update(msg);
+
+	OutputDebugString(L"here");
 
 	switch (result)
 	{

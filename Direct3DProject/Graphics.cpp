@@ -7,7 +7,7 @@
 #pragma comment(lib,"D3DCompiler.lib")
 
 
-Graphics::Graphics(HWND* windowHandle)
+Graphics::Graphics(HWND* pHWnd)
 {
 	DXGI_SWAP_CHAIN_DESC sd =
 	{
@@ -16,7 +16,7 @@ Graphics::Graphics(HWND* windowHandle)
 		0, 0,
 		DXGI_USAGE_RENDER_TARGET_OUTPUT,
 		1,
-		*windowHandle, TRUE, DXGI_SWAP_EFFECT_DISCARD,
+		*pHWnd, TRUE, DXGI_SWAP_EFFECT_DISCARD,
 		0
 	};
 	sd.BufferDesc.Width = 0;
@@ -68,9 +68,5 @@ void Graphics::UpdateScreen()
 
 void Graphics::AddToDraw(float x, float y, float z)
 {
-	Vertex vertexToAdd = Vertex(x, y, z);
-	/*if (std::find(vertexList.begin(), vertexList.end(), vertexToAdd) == vertexList.end())
-	{
-		vertexList.push_back(vertexToAdd);
-	}*/
+	
 }
