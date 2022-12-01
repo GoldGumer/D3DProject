@@ -4,6 +4,8 @@
 
 Window::Window(int spawnX, int spawnY, int length, int height, HINSTANCE hInst, WNDPROC WndProc)
 {
+	
+
 	const auto windowName = L"D3DWindow";
 	WNDCLASSEX window = { sizeof(window), CS_OWNDC, WndProc, 0, 0, hInst, nullptr, nullptr, nullptr, nullptr, windowName, nullptr };
 	RegisterClassEx(&window);
@@ -22,6 +24,8 @@ Window::Window(int spawnX, int spawnY, int length, int height, HINSTANCE hInst, 
 		hInst,
 		nullptr
 	);
+
+	this->windowHandle = windowHandle;
 
 	ShowWindow(windowHandle, SW_SHOW);
 }

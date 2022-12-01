@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Windows.h>
 
 class Window
@@ -8,5 +9,6 @@ public:
 	void Update(MSG* pMsg);
 private:
 	int spawnX, spawnY, length, height;
+	HWND windowHandle;
 };
 
