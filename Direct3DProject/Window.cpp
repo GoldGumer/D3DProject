@@ -26,7 +26,7 @@ Window::Window(int spawnX, int spawnY, int length, int height, HINSTANCE hInst, 
 	ShowWindow(windowHandle, SW_SHOW);
 }
 
-void Window::Update(MSG* msg)
+void Window::Update(MSG* pMsg)
 {
-	DispatchMessage(&msg);
+	DispatchMessage(pMsg);
 }
