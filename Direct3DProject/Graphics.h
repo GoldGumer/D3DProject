@@ -2,7 +2,6 @@
 
 #include <Windows.h>
 #include <d3d11.h>
-#include <list>
 
 #include "Triangle.h"
 #include "Vertex.h"
@@ -15,7 +14,7 @@ public:
 	void UpdateScreen();
 	void AddToDraw(float x, float y, float z);
 private:
-	std::list<Vertex> vertices;
+	Vertex vertices[3];
 
 	ID3D11Device* pDevice = nullptr;
 	IDXGISwapChain* pSwap = nullptr;

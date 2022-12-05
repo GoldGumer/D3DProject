@@ -54,9 +54,8 @@ Window::~Window()
 	DestroyWindow(windowHandle);
 }
 
-MSG Window::Update(MSG msg)
+void Window::Update(MSG *msg)
 {
-	TranslateMessage(&msg);
-	DispatchMessage(&msg);
-	return msg;
+	TranslateMessage(msg);
+	DispatchMessage(msg);
 }

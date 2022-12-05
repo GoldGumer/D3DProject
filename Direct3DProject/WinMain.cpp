@@ -1,8 +1,9 @@
 #include <Windows.h>
+
 #include "Window.h"
 
 LRESULT CALLBACK WndProc(
-	HWND hWnd,
+	HWND windowHandle,
 	UINT msg,
 	WPARAM wParam,
 	LPARAM lParam
@@ -10,37 +11,38 @@ LRESULT CALLBACK WndProc(
 {
 	switch (msg)
 	{
-	case WM_QUIT:
+	case WM_CLOSE:
 		PostQuitMessage(20);
 		break;
 	}
 
-	return DefWindowProc( hWnd, msg, wParam, lParam );
+	return DefWindowProc(windowHandle, msg, wParam, lParam );
 }
 
 int CALLBACK WinMain(
 	HINSTANCE hInst,
 	HINSTANCE hPrevInst,
 	LPSTR lpCmdLine,
-	int nCmdShow
+	INT nCmdShow
 )
 {
+
 	Window window = Window(200, 200, 640, 480, hInst, WndProc);
 
 	MSG msg;
 	bool result;
 
-	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) msg = window.Update(msg);
-
-	OutputDebugString(L"here");
-
-	switch (result)
+	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) 
 	{
-	case -1:
+		window.Update(&msg);
+	}
+
+	if (result == -1)
+	{
 		return -1;
-		break;
-	default:
+	}
+	else
+	{
 		return msg.wParam;
-		break;
 	}
 }
