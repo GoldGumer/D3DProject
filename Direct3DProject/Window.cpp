@@ -59,3 +59,8 @@ void Window::Update(MSG *msg)
 	TranslateMessage(msg);
 	DispatchMessage(msg);
 }
+
+HWND Window::getWindowHandle()
+{
+	return windowHandle;
+}

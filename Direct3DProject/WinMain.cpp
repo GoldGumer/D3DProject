@@ -26,14 +26,18 @@ int CALLBACK WinMain(
 	INT nCmdShow
 )
 {
-
 	Window window = Window(200, 200, 640, 480, hInst, WndProc);
 
 	MSG msg;
 	bool result;
 
+	Graphics gfx = Graphics(window.getWindowHandle());
+
+	SetTimer(window.getWindowHandle(), 1u, 10, NULL);
+
 	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) 
 	{
+		gfx.UpdateScreen();
 		window.Update(&msg);
 	}
 
