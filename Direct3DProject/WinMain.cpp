@@ -33,7 +33,7 @@ int CALLBACK WinMain(
 
 	Graphics gfx = Graphics(window.getWindowHandle());
 
-	SetTimer(window.getWindowHandle(), 1u, 10, NULL);
+	SetTimer(window.getWindowHandle(), 1u, 1000, NULL);
 
 	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) 
 	{

@@ -12,6 +12,8 @@ Graphics::Graphics()
 
 Graphics::Graphics(HWND windowHandle)
 {
+	this->windowHandle = windowHandle;
+
 	DXGI_SWAP_CHAIN_DESC sd =
 	{
 		0, 0, 0, 0,
@@ -31,12 +33,6 @@ Graphics::Graphics(HWND windowHandle)
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.BufferCount = 1;
-	sd.OutputWindow = windowHandle;
-	sd.Windowed = TRUE;
-	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	sd.Flags = 0;
 
 	D3D11CreateDeviceAndSwapChain(
 		nullptr,
@@ -53,9 +49,9 @@ Graphics::Graphics(HWND windowHandle)
 		&pContext
 	);
 
-	AddToDraw(-1, 0, 0);
-	AddToDraw(1, 0, 0);
-	AddToDraw(0, 2, 0);
+	AddToDraw(-4, 0, 0);
+	AddToDraw(4, 0, 0);
+	AddToDraw(0, 8, 0);
 
 	//Shader Buffers
 	D3D11_BUFFER_DESC bufferDesc = {};
@@ -68,10 +64,17 @@ Graphics::Graphics(HWND windowHandle)
 	D3D11_SUBRESOURCE_DATA subResData = {};
 	subResData.pSysMem = vertices;
 
+
+
 	pDevice->CreateBuffer(&bufferDesc, &subResData, &pVertexBuffer);
 	const UINT stride = sizeof(Vertex);
 	const UINT offset = 0u;
 	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
+
+	const UINT stride = sizeof(Vertex);
+	const UINT offset = 0u;
+	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
+
 	ID3DBlob* pBlob;
 
 	//Pixel shader
@@ -102,15 +105,20 @@ Graphics::Graphics(HWND windowHandle)
 	//Primitive Triangle
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	
 	//setup viewport
-	D3D11_VIEWPORT vp;
-	vp.Width = 600;
-	vp.Height = 800;
-	vp.MinDepth = 0;
-	vp.MaxDepth = 1;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
+	RECT winRect;
+	GetClientRect(windowHandle, &winRect);
 
+	D3D11_VIEWPORT vp =
+	{
+		0,
+		0,
+		(FLOAT)(winRect.right - winRect.left),
+		(FLOAT)(winRect.bottom - winRect.top),
+		0,
+		1
+	};
 	pContext->RSSetViewports(1u, &vp);
 }
 
@@ -134,11 +142,14 @@ void Graphics::UpdateScreen()
 {
 	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
 	ClearBuffer(rColor, gColor, bColor);
+	/*rColor += 0.01f;
 	gColor += 0.01f;
-	bColor += 0.04f;
+	bColor += 0.01f;
+	if (rColor >= 1.0f) rColor -= 1.0f;
 	if (gColor >= 1.0f) gColor -= 1.0f;
-	if (bColor >= 1.0f) bColor -= 1.0f;
-	pContext->Draw((UINT)sizeof(vertices), 0u);
+	if (bColor >= 1.0f) bColor -= 1.0f;*/
+
+	pContext->Draw(sizeof(vertices), 0u);
 	pSwap->Present(1u, 0u);
 }
 
@@ -146,6 +157,11 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 {
 	const float color[] = { red,green,blue,1.0f };
 	pContext->ClearRenderTargetView(pRenderTarget, color);
+}
+
+void Graphics::UpdateRenderTarget()
+{
+
 }
 
 void Graphics::AddToDraw(float x, float y, float z)

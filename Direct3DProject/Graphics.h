@@ -14,13 +14,16 @@ public:
 	~Graphics();
 	void UpdateScreen();
 	void ClearBuffer(float red, float blue, float green) noexcept;
+	void UpdateRenderTarget();
 	void AddToDraw(float x, float y, float z);
 private:
 	float rColor = 0.0f;
-	float gColor = 0.0f;
-	float bColor = 0.0f;
+	float gColor = 0.1f;
+	float bColor = 0.4f;
 
 	Vertex vertices[3];
+
+	HWND windowHandle;
 
 	ID3D11RenderTargetView* pRenderTarget;
 
