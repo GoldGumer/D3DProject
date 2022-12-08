@@ -49,31 +49,18 @@ Graphics::Graphics(HWND windowHandle)
 		&pContext
 	);
 
-	AddToDraw(-4, 0, 0);
-	AddToDraw(4, 0, 0);
-	AddToDraw(0, 8, 0);
-
-	//Shader Buffers
+	//Vertex Buffer setup
 	D3D11_BUFFER_DESC bufferDesc = {};
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.CPUAccessFlags = 0u;
-	bufferDesc.MiscFlags = 0u;
-	bufferDesc.ByteWidth = sizeof(vertices);
-	bufferDesc.StructureByteStride = sizeof(Vertex);
-	D3D11_SUBRESOURCE_DATA subResData = {};
-	subResData.pSysMem = vertices;
+	//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	//bufferDesc.CPUAccessFlags = 0u;
+	//bufferDesc.MiscFlags = 0u;
+	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
+	//bufferDesc.StructureByteStride = sizeof(Vertex);
 
-
-
+	D3D11_SUBRESOURCE_DATA subResData = { vertices, 0, 0 };
 	pDevice->CreateBuffer(&bufferDesc, &subResData, &pVertexBuffer);
-	const UINT stride = sizeof(Vertex);
-	const UINT offset = 0u;
-	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
 
-	const UINT stride = sizeof(Vertex);
-	const UINT offset = 0u;
-	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
 
 	ID3DBlob* pBlob;
 
@@ -95,30 +82,25 @@ Graphics::Graphics(HWND windowHandle)
 
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget);
 	pBackBuffer->Release();
+	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
 
 	//creating input layer
 	ID3D11InputLayout* pInputLay;
-	const D3D11_INPUT_ELEMENT_DESC ied[] = { { "Position", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 } };
-	pDevice->CreateInputLayout(ied, sizeof(ied), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pInputLay);
-	pContext->IAGetInputLayout(&pInputLay);
-
-	//Primitive Triangle
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	const D3D11_INPUT_ELEMENT_DESC ied[] = { { "Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 } };
+	pDevice->CreateInputLayout(ied, ARRAYSIZE(ied), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pInputLay);
+	pContext->IASetInputLayout(pInputLay);
+	//pContext->IAGetInputLayout(&pInputLay);
 	
 	//setup viewport
 	RECT winRect;
 	GetClientRect(windowHandle, &winRect);
 
-	D3D11_VIEWPORT vp =
-	{
-		0,
-		0,
-		(FLOAT)(winRect.right - winRect.left),
-		(FLOAT)(winRect.bottom - winRect.top),
-		0,
-		1
-	};
+	D3D11_VIEWPORT vp = {0};
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	vp.Width = (FLOAT)(winRect.right - winRect.left);
+	vp.Height = (FLOAT)(winRect.bottom - winRect.top);
+
 	pContext->RSSetViewports(1u, &vp);
 }
 
@@ -140,8 +122,8 @@ Graphics::~Graphics()
 
 void Graphics::UpdateScreen()
 {
-	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
 	ClearBuffer(rColor, gColor, bColor);
+	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
 	/*rColor += 0.01f;
 	gColor += 0.01f;
 	bColor += 0.01f;
@@ -149,7 +131,15 @@ void Graphics::UpdateScreen()
 	if (gColor >= 1.0f) gColor -= 1.0f;
 	if (bColor >= 1.0f) bColor -= 1.0f;*/
 
-	pContext->Draw(sizeof(vertices), 0u);
+	//Set Vertex Buffer
+	const UINT stride = sizeof(SimpleVertex);
+	const UINT offset = 0u;
+	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
+
+	//Primitive Triangle
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	pContext->Draw(3u, 0u);
 	pSwap->Present(1u, 0u);
 }
 
@@ -157,14 +147,4 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 {
 	const float color[] = { red,green,blue,1.0f };
 	pContext->ClearRenderTargetView(pRenderTarget, color);
-}
-
-void Graphics::UpdateRenderTarget()
-{
-
-}
-
-void Graphics::AddToDraw(float x, float y, float z)
-{
-	for (int i = 0; i < 3; i++) if (vertices[i].GetPos() == Vertex().GetPos()) vertices[i] = Vertex(x, y, z);
 }
