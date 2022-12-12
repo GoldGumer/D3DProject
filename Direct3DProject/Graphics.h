@@ -4,8 +4,7 @@
 #include <d3d11.h>
 #include <directxmath.h>
 
-#include "Triangle.h"
-//#include "Vertex.h"
+#include "Cube.h"
 
 using namespace DirectX;
 
@@ -25,27 +24,30 @@ struct ConstantMatrices
 class Graphics
 {
 public:
-	void InitBuffers();
-	void InitShaders();
-	
 	Graphics();
 	Graphics(HWND windowHandle);
 	~Graphics();
 
 	void UpdateScreen();
-	void UpdateDir(char dir);
-	void ClearBuffer(float rgb[3]) noexcept;
-private:
 
+private:
+	void InitBuffers();
+	void InitShaders();
+
+	void DrawCube(Cube cube);
+
+	void ClearBuffer(float rgb[3]) noexcept;
+
+	//Cubes to be generated
+	Cube cubes[1] =
+	{
+		Cube(new float[3] { 0.0f, 0.0f, 0.0f })
+	};
+
+	//Background RGB
 	float bgRGB[3] = { 0.1f,0.1f,0.1f };
 
-	//rotation
-	float rotation = 0.0f;
-	float rotateAmount = 0.05f;
-	XMVECTOR axisRotate = { 0.0f,1.0f,0.0f,1.0f };
-
 	//World projection to screen
-	XMMATRIX world;
 	XMMATRIX view;
 	XMMATRIX projection;
 

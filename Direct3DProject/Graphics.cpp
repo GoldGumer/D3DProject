@@ -131,7 +131,6 @@ Graphics::Graphics(HWND windowHandle)
 
 	//Constant Matrices setup
 	
-	world = XMMatrixIdentity();
 	view = XMMatrixLookAtLH(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 	projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (winRect.right - winRect.left) / (FLOAT)(winRect.bottom - winRect.top), 0.01f, 100.0f);
 }
@@ -163,46 +162,35 @@ void Graphics::UpdateScreen()
 	//Primitive Triangle
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	rotation += rotateAmount;
-	world = XMMatrixRotationAxis(axisRotate, rotation);
-
-	ConstantMatrices cm;
-	cm.world = XMMatrixTranspose(world);
-	cm.view = XMMatrixTranspose(view);
-	cm.projection = XMMatrixTranspose(projection);
-
-	pContext->UpdateSubresource(pConstBuffer, 0, nullptr, &cm, 0, 0);
+	//Setup for drawing to backbuffer
 	pContext->VSSetShader(pVertexShader, nullptr, 0u);
 	pContext->VSSetConstantBuffers(0, 1, &pConstBuffer);
 	pContext->PSSetShader(pPixelShader, nullptr, 0u);
 
-	pContext->DrawIndexed(ARRAYSIZE(indices), 0u, 0);
+	for (int i = 0; i < ARRAYSIZE(cubes); i++)
+	{
+		cubes[i].Transform();
+		DrawCube(cubes[i]);
+	}
+
+	//Swap back buffer
 	pSwap->Present(1u, 0u);
 }
 
-void Graphics::UpdateDir(char dir)
+void Graphics::DrawCube(Cube cube)
 {
-	switch (dir)
-	{
-	case 'L':
-		axisRotate = { 0.0f, 1.0f, 0.0f, 1.0f };
-		rotateAmount = +0.05f;
-		break;
-	case 'R':
-		axisRotate = { 0.0f, 1.0f, 0.0f, 1.0f };
-		rotateAmount = -0.05f;
-		break;
-	case 'U':
-		axisRotate = { 1.0f, 0.0f, 0.0f, 1.0f };
-		rotateAmount = +0.05f;
-		break;
-	case 'D':
-		axisRotate = { 1.0f, 0.0f, 0.0f, 1.0f };
-		rotateAmount = -0.05f;
-		break;
-	default:
-		break;
-	}
+	ConstantMatrices cm;
+
+	//Transforming
+	cm.world = XMMatrixTranspose(cube.GetWorld());
+	cm.view = XMMatrixTranspose(view);
+	cm.projection = XMMatrixTranspose(projection);
+
+	//Update to new Transform
+	pContext->UpdateSubresource(pConstBuffer, 0, nullptr, &cm, 0, 0);
+
+	//Drawing
+	pContext->DrawIndexed(ARRAYSIZE(indices), 0u, 0);
 }
 
 void Graphics::ClearBuffer(float rgb[3]) noexcept

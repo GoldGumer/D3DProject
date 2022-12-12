@@ -59,7 +59,6 @@ int CALLBACK WinMain(
 	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) 
 	{
 		gfx.UpdateScreen();
-		gfx.UpdateDir(dir);
 		window.Update(&msg);
 	}
 
