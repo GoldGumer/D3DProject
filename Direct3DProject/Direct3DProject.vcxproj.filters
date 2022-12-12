@@ -53,4 +53,12 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="VertexList.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="IndexList.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

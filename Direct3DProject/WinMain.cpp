@@ -2,6 +2,9 @@
 
 #include "Window.h"
 
+//direction the object is rotating in 
+char dir = 'L';
+
 LRESULT CALLBACK WndProc(
 	HWND windowHandle,
 	UINT msg,
@@ -13,6 +16,24 @@ LRESULT CALLBACK WndProc(
 	{
 	case WM_CLOSE:
 		PostQuitMessage(20);
+		break;
+	case WM_KEYDOWN:
+		if (wParam == 'A')
+		{
+			dir = 'L';
+		}
+		else if (wParam == 'W')
+		{
+			dir = 'U';
+		}
+		else if (wParam == 'D')
+		{
+			dir = 'R';
+		}
+		else if (wParam == 'S')
+		{
+			dir = 'D';
+		}
 		break;
 	}
 
@@ -26,7 +47,7 @@ int CALLBACK WinMain(
 	INT nCmdShow
 )
 {
-	Window window = Window(200, 200, 640, 480, hInst, WndProc);
+	Window window = Window(250, 50, 1280, 960, hInst, WndProc);
 
 	MSG msg;
 	bool result;
@@ -38,6 +59,7 @@ int CALLBACK WinMain(
 	while (result = GetMessage(&msg, nullptr, 0, 0) > 0) 
 	{
 		gfx.UpdateScreen();
+		gfx.UpdateDir(dir);
 		window.Update(&msg);
 	}
 

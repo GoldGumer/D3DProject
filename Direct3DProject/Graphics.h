@@ -12,40 +12,93 @@ using namespace DirectX;
 struct SimpleVertex
 {
 	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+};
+
+struct ConstantMatrices 
+{
+	XMMATRIX world;
+	XMMATRIX view;
+	XMMATRIX projection;
 };
 
 class Graphics
 {
 public:
+	void InitBuffers();
+	void InitShaders();
+	
 	Graphics();
 	Graphics(HWND windowHandle);
 	~Graphics();
+
 	void UpdateScreen();
-	void ClearBuffer(float red, float blue, float green) noexcept;
-	//void AddToDraw(float x, float y, float z);
+	void UpdateDir(char dir);
+	void ClearBuffer(float rgb[3]) noexcept;
 private:
-	float rColor = 0.1f;
-	float gColor = 0.1f;
-	float bColor = 0.1f;
 
-	//Vertex vertices[3] = { Vertex(-1000,0,0) ,Vertex(1000,0,10000) ,Vertex(0,1000,0) };
+	float bgRGB[3] = { 0.1f,0.1f,0.1f };
 
-	SimpleVertex vertices[3] = {
-		XMFLOAT3(0.0f, 0.5f, 0.5f),
-		XMFLOAT3(0.5f, -0.5f, 0.5f),
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+	//rotation
+	char dir = 'L';
+	float t = 0.0f;
+
+	XMMATRIX world;
+	XMMATRIX view;
+	XMMATRIX projection;
+
+	//Vertex list
+	SimpleVertex vertices[8] =
+	{
+		{ XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+	};
+
+	//Index list
+	WORD indices[36] =
+	{
+		3,1,0,
+		2,1,3,
+
+		0,5,4,
+		1,5,0,
+
+		3,4,7,
+		0,4,3,
+
+		1,6,5,
+		2,6,1,
+
+		2,7,6,
+		3,7,2,
+
+		6,4,5,
+		7,4,6,
 	};
 
 	HWND windowHandle;
 
 	ID3D11RenderTargetView* pRenderTarget;
 
+	//Buffers
 	ID3D11Buffer* pVertexBuffer;
-	ID3D11VertexShader* pVertexShader;
+	ID3D11Buffer* pIndexBuffer;
+	ID3D11Buffer* pConstBuffer;
 
-	ID3D11Buffer* pPixelBuffer;
+	//Shaders
+	ID3D11VertexShader* pVertexShader;
 	ID3D11PixelShader* pPixelShader;
 
+	ID3D11InputLayout* pVertexLayout = nullptr;
+	D3D11_VIEWPORT viewport;
+
+	//D3D Comms
 	ID3D11Device* pDevice = nullptr;
 	IDXGISwapChain* pSwap = nullptr;
 	ID3D11DeviceContext* pContext = nullptr;

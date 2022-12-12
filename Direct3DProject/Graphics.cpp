@@ -6,6 +6,63 @@
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib,"D3DCompiler.lib")
 
+void Graphics::InitBuffers()
+{
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.CPUAccessFlags = 0;
+
+	//Vertex Buffer setup
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
+
+	D3D11_SUBRESOURCE_DATA subResData = { vertices, 0, 0 };
+	pDevice->CreateBuffer(&bufferDesc, &subResData, &pVertexBuffer);
+
+	const UINT stride = sizeof(SimpleVertex);
+	const UINT offset = 0u;
+	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
+
+	//Index Buffer setup
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.ByteWidth = sizeof(WORD) * ARRAYSIZE(indices);
+
+	subResData.pSysMem = indices;
+	pDevice->CreateBuffer(&bufferDesc, &subResData, &pIndexBuffer);
+
+	pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	//Constant Buffer stetup
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.ByteWidth = sizeof(ConstantMatrices);
+
+	pDevice->CreateBuffer(&bufferDesc, NULL, &pConstBuffer);
+}
+
+void Graphics::InitShaders()
+{
+	ID3DBlob* pBlob;
+	//Pixel shader
+	D3DReadFileToBlob(L"pixelshader.cso", &pBlob);
+	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
+
+	//Vertex shader
+	D3DReadFileToBlob(L"vertexshader.cso", &pBlob);
+	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
+
+	//creating input layer
+	D3D11_INPUT_ELEMENT_DESC ied[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	pDevice->CreateInputLayout(ied, ARRAYSIZE(ied), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pVertexLayout);
+
+	pContext->IASetInputLayout(pVertexLayout);
+
+	pBlob->Release();
+}
+
 Graphics::Graphics()
 {
 }
@@ -49,32 +106,9 @@ Graphics::Graphics(HWND windowHandle)
 		&pContext
 	);
 
-	//Vertex Buffer setup
-	D3D11_BUFFER_DESC bufferDesc = {};
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	//bufferDesc.CPUAccessFlags = 0u;
-	//bufferDesc.MiscFlags = 0u;
-	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
-	//bufferDesc.StructureByteStride = sizeof(Vertex);
+	InitBuffers();
 
-	D3D11_SUBRESOURCE_DATA subResData = { vertices, 0, 0 };
-	pDevice->CreateBuffer(&bufferDesc, &subResData, &pVertexBuffer);
-
-
-	ID3DBlob* pBlob;
-
-	//Pixel shader
-	D3DReadFileToBlob(L"pixelshader.cso", &pBlob);
-	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
-
-	pContext->PSSetShader(pPixelShader, nullptr, 0u);
-
-	//Vertex shader
-	D3DReadFileToBlob(L"vertexshader.cso", &pBlob);
-	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
-
-	pContext->VSSetShader(pVertexShader, nullptr, 0u);
+	InitShaders();
 
 	//render target setup
 	ID3D11Texture2D* pBackBuffer;
@@ -83,68 +117,95 @@ Graphics::Graphics(HWND windowHandle)
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget);
 	pBackBuffer->Release();
 	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
-
-	//creating input layer
-	ID3D11InputLayout* pInputLay;
-	const D3D11_INPUT_ELEMENT_DESC ied[] = { { "Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 } };
-	pDevice->CreateInputLayout(ied, ARRAYSIZE(ied), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pInputLay);
-	pContext->IASetInputLayout(pInputLay);
-	//pContext->IAGetInputLayout(&pInputLay);
 	
 	//setup viewport
 	RECT winRect;
 	GetClientRect(windowHandle, &winRect);
 
-	D3D11_VIEWPORT vp = {0};
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	vp.Width = (FLOAT)(winRect.right - winRect.left);
-	vp.Height = (FLOAT)(winRect.bottom - winRect.top);
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = (FLOAT)(winRect.right - winRect.left);
+	viewport.Height = (FLOAT)(winRect.bottom - winRect.top);
 
-	pContext->RSSetViewports(1u, &vp);
+	pContext->RSSetViewports(1u, &viewport);
+
+	//Constant Matrices setup
+	
+	world = XMMatrixIdentity();
+	view = XMMatrixLookAtLH(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+	projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (winRect.right - winRect.left) / (FLOAT)(winRect.bottom - winRect.top), 0.01f, 100.0f);
 }
 
 Graphics::~Graphics()
 {
-	if (pSwap != nullptr)
-	{
-		pSwap->Release();
-	}
-	if (pDevice != nullptr)
-	{
-		pDevice->Release();
-	}
-	if (pContext != nullptr)
-	{
-		pContext->Release();
-	}
+	//Buffers
+	pVertexBuffer->Release();
+	pIndexBuffer->Release();
+	pConstBuffer->Release();
+
+	//Shaders
+	pPixelShader->Release();
+	pVertexShader->Release();
+
+	pVertexLayout->Release();
+
+	//D3D Comms
+	pDevice->Release();
+	pSwap->Release();
+	pContext->Release();
 }
 
 void Graphics::UpdateScreen()
 {
-	ClearBuffer(rColor, gColor, bColor);
+	ClearBuffer(bgRGB);
 	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
-	/*rColor += 0.01f;
-	gColor += 0.01f;
-	bColor += 0.01f;
-	if (rColor >= 1.0f) rColor -= 1.0f;
-	if (gColor >= 1.0f) gColor -= 1.0f;
-	if (bColor >= 1.0f) bColor -= 1.0f;*/
-
-	//Set Vertex Buffer
-	const UINT stride = sizeof(SimpleVertex);
-	const UINT offset = 0u;
-	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
 
 	//Primitive Triangle
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	pContext->Draw(3u, 0u);
+	switch (dir)
+	{
+	case 'L':
+		t += 0.05f;
+		world = XMMatrixRotationY(t);
+		break;
+	case 'R':
+		t -= 0.05f;
+		world = XMMatrixRotationY(t);
+		break;
+	case 'U':
+		t += 0.05f;
+		world = XMMatrixRotationX(t);
+		break;
+	case 'D':
+		t -= 0.05f;
+		world = XMMatrixRotationX(t);
+		break;
+	default:
+		break;
+	}
+
+	ConstantMatrices cm;
+	cm.world = XMMatrixTranspose(world);
+	cm.view = XMMatrixTranspose(view);
+	cm.projection = XMMatrixTranspose(projection);
+
+	pContext->UpdateSubresource(pConstBuffer, 0, nullptr, &cm, 0, 0);
+	pContext->VSSetShader(pVertexShader, nullptr, 0u);
+	pContext->VSSetConstantBuffers(0, 1, &pConstBuffer);
+	pContext->PSSetShader(pPixelShader, nullptr, 0u);
+
+	pContext->DrawIndexed(ARRAYSIZE(indices), 0u, 0);
 	pSwap->Present(1u, 0u);
 }
 
-void Graphics::ClearBuffer(float red, float green, float blue) noexcept
+void Graphics::UpdateDir(char dir)
 {
-	const float color[] = { red,green,blue,1.0f };
+	this->dir = dir;
+}
+
+void Graphics::ClearBuffer(float rgb[3]) noexcept
+{
+	const float color[] = { rgb[0], rgb[1], rgb[2], 1.0f };
 	pContext->ClearRenderTargetView(pRenderTarget, color);
 }
