@@ -163,27 +163,8 @@ void Graphics::UpdateScreen()
 	//Primitive Triangle
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	switch (dir)
-	{
-	case 'L':
-		t += 0.05f;
-		world = XMMatrixRotationY(t);
-		break;
-	case 'R':
-		t -= 0.05f;
-		world = XMMatrixRotationY(t);
-		break;
-	case 'U':
-		t += 0.05f;
-		world = XMMatrixRotationX(t);
-		break;
-	case 'D':
-		t -= 0.05f;
-		world = XMMatrixRotationX(t);
-		break;
-	default:
-		break;
-	}
+	rotation += rotateAmount;
+	world = XMMatrixRotationAxis(axisRotate, rotation);
 
 	ConstantMatrices cm;
 	cm.world = XMMatrixTranspose(world);
@@ -201,7 +182,27 @@ void Graphics::UpdateScreen()
 
 void Graphics::UpdateDir(char dir)
 {
-	this->dir = dir;
+	switch (dir)
+	{
+	case 'L':
+		axisRotate = { 0.0f, 1.0f, 0.0f, 1.0f };
+		rotateAmount = +0.05f;
+		break;
+	case 'R':
+		axisRotate = { 0.0f, 1.0f, 0.0f, 1.0f };
+		rotateAmount = -0.05f;
+		break;
+	case 'U':
+		axisRotate = { 1.0f, 0.0f, 0.0f, 1.0f };
+		rotateAmount = +0.05f;
+		break;
+	case 'D':
+		axisRotate = { 1.0f, 0.0f, 0.0f, 1.0f };
+		rotateAmount = -0.05f;
+		break;
+	default:
+		break;
+	}
 }
 
 void Graphics::ClearBuffer(float rgb[3]) noexcept
