@@ -167,9 +167,26 @@ void Graphics::UpdateScreen()
 	pContext->VSSetConstantBuffers(0, 1, &pConstBuffer);
 	pContext->PSSetShader(pPixelShader, nullptr, 0u);
 
+	//Goes through each cube and draws them
 	for (int i = 0; i < ARRAYSIZE(cubes); i++)
 	{
-		cubes[i].Transform();
+		float* cubePos = cubes[i].GetPosition();
+		float rotation[3] = { 0.0f,0.0f,0.0f };
+		if (cubePos[0] == -5.0f)
+		{
+			rotation[1] = 0.025f;
+		}
+		else if (cubePos[0] == 0.0f)
+		{
+			rotation[0] = 0.025f;
+		}
+		else
+		{
+			rotation[0] = 0.025f;
+			rotation[1] = 0.025f;
+		}
+
+		cubes[i].Rotate(rotation);
 		DrawCube(cubes[i]);
 	}
 

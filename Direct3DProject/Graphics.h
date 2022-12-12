@@ -39,13 +39,15 @@ private:
 	void ClearBuffer(float rgb[3]) noexcept;
 
 	//Cubes to be generated
-	Cube cubes[1] =
+	Cube cubes[3] =
 	{
-		Cube(new float[3] { 0.0f, 0.0f, 0.0f })
+		Cube(new float[3] { 0.0f, 0.0f, 5.0f }),
+		Cube(new float[3] { -5.0f, 0.0f, 5.0f }),
+		Cube(new float[3] { 5.0f, 0.0f, 5.0f }),
 	};
 
 	//Background RGB
-	float bgRGB[3] = { 0.1f,0.1f,0.1f };
+	float bgRGB[3] = { 0.25f,0.25f,0.25f };
 
 	//World projection to screen
 	XMMATRIX view;

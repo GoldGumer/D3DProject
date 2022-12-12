@@ -9,6 +9,7 @@ Cube::Cube(float _position[3], float _rotation[3], float _scale[3])
 		rotation[i] = _rotation[i];
 		scale[i] = _scale[i];
 	}
+	Transform();
 }
 
 void Cube::Transform(float _position[3], float _rotation[3], float _scale[3])
@@ -25,6 +26,21 @@ void Cube::Transform(float _position[3], float _rotation[3], float _scale[3])
 	XMMATRIX mScaling = XMMatrixScaling( scale[0], scale[1], scale[2] );
 
 	world = mScaling * mRotation * mTranslation;
+}
+
+void Cube::Translate(float _position[3])
+{
+	Transform(_position);
+}
+
+void Cube::Rotate(float _rotation[3])
+{
+	Transform(new float[3] {0.0f, 0.0f, 0.0f}, _rotation);
+}
+
+void Cube::ScaleUp(float _scale[3])
+{
+	Transform(new float[3] {0.0f, 0.0f, 0.0f}, new float[3] {0.0f, 0.0f, 0.0f}, _scale);
 }
 
 XMMATRIX Cube::GetWorld()
