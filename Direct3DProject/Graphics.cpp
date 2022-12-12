@@ -14,9 +14,9 @@ void Graphics::InitBuffers()
 
 	//Vertex Buffer setup
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
+	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(verCol);
 
-	D3D11_SUBRESOURCE_DATA subResData = { vertices, 0, 0 };
+	D3D11_SUBRESOURCE_DATA subResData = { verCol, 0, 0 };
 	pDevice->CreateBuffer(&bufferDesc, &subResData, &pVertexBuffer);
 
 	const UINT stride = sizeof(SimpleVertex);
@@ -70,6 +70,11 @@ Graphics::Graphics()
 Graphics::Graphics(HWND windowHandle)
 {
 	this->windowHandle = windowHandle;
+
+	for (int i = 0; i < ARRAYSIZE(vertices); i++)
+	{
+		verCol[i] = { vertices[i], colours[i % ARRAYSIZE(colours)] };
+	}
 
 	DXGI_SWAP_CHAIN_DESC sd =
 	{

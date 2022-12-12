@@ -5,6 +5,7 @@
 #include <directxmath.h>
 
 #include "Cube.h"
+#include "ObjReader.h"
 
 using namespace DirectX;
 
@@ -54,17 +55,27 @@ private:
 	XMMATRIX projection;
 
 	//Vertex list
-	SimpleVertex vertices[8] =
+	XMFLOAT3 vertices[8] =
 	{
-		{ XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f) },
+		XMFLOAT3(-1.0f,  1.0f, -1.0f),
+		XMFLOAT3(1.0f,  1.0f, -1.0f),
+		XMFLOAT3(1.0f,  1.0f,  1.0f),
+		XMFLOAT3(-1.0f,  1.0f,  1.0f),
+		XMFLOAT3(-1.0f, -1.0f, -1.0f),
+		XMFLOAT3(1.0f, -1.0f, -1.0f),
+		XMFLOAT3(1.0f, -1.0f,  1.0f),
+		XMFLOAT3(-1.0f, -1.0f,  1.0f)
 	};
+
+	//Colour list
+	XMFLOAT4 colours[2] =
+	{
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f)
+	};
+
+	//Vertex + Colour list
+	SimpleVertex verCol[8];
 
 	//Index list
 	WORD indices[36] =
