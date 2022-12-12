@@ -192,14 +192,18 @@ void Graphics::UpdateScreen()
 		}
 
 		cubes[i].Rotate(rotation);
-		DrawCube(cubes[i]);
+		DrawObject(cubes[i]);
 	}
+
+	RECT winRect;
+	GetClientRect(windowHandle, &winRect);
+	projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (winRect.right - winRect.left) / (FLOAT)(winRect.bottom - winRect.top), 0.01f, 100.0f);
 
 	//Swap back buffer
 	pSwap->Present(1u, 0u);
 }
 
-void Graphics::DrawCube(Cube cube)
+void Graphics::DrawObject(Object cube)
 {
 	ConstantMatrices cm;
 

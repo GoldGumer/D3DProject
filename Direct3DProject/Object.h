@@ -4,10 +4,10 @@
 
 using namespace DirectX;
 
-class Cube
+class Object
 {
 public:
-	Cube(float _position[3] = new float[3] {0.0f, 0.0f, 0.0f}, float _rotation[3] = new float[3] {0.0f, 0.0f, 0.0f}, float _scale[3] = new float[3] {1.0f, 1.0f, 1.0f});
+	Object(float _position[3] = new float[3] {0.0f, 0.0f, 0.0f}, float _rotation[3] = new float[3] {0.0f, 0.0f, 0.0f}, float _scale[3] = new float[3] {1.0f, 1.0f, 1.0f});
 	void Transform(float _position[3] = new float[3] {0.0f, 0.0f, 0.0f}, float _rotation[3] = new float[3] {0.0f, 0.0f, 0.0f}, float _scale[3] = new float[3] { 0.0f, 0.0f, 0.0f });
 	void Translate(float _position[3] = new float[3] {0.0f, 0.0f, 0.0f});
 	void Rotate(float _rotation[3] = new float[3] {0.0f, 0.0f, 0.0f});

@@ -4,8 +4,7 @@
 #include <d3d11.h>
 #include <directxmath.h>
 
-#include "Cube.h"
-#include "ObjReader.h"
+#include "Object.h"
 
 using namespace DirectX;
 
@@ -30,21 +29,20 @@ public:
 	~Graphics();
 
 	void UpdateScreen();
-
 private:
 	void InitBuffers();
 	void InitShaders();
 
-	void DrawCube(Cube cube);
+	void DrawObject(Object cube);
 
 	void ClearBuffer(float rgb[3]) noexcept;
 
 	//Cubes to be generated
-	Cube cubes[3] =
+	Object cubes[3] =
 	{
-		Cube(new float[3] { 0.0f, 0.0f, 5.0f }),
-		Cube(new float[3] { -5.0f, 0.0f, 5.0f }),
-		Cube(new float[3] { 5.0f, 0.0f, 5.0f }),
+		Object(new float[3] { 0.0f, 0.0f, 5.0f }),
+		Object(new float[3] { -5.0f, 0.0f, 5.0f }),
+		Object(new float[3] { 5.0f, 0.0f, 5.0f }),
 	};
 
 	//Background RGB
@@ -68,10 +66,11 @@ private:
 	};
 
 	//Colour list
-	XMFLOAT4 colours[2] =
+	XMFLOAT4 colours[3] =
 	{
-		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f)
+		XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f),
+		XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f),
+		XMFLOAT4(1.0f, 1.0f, 0.5f, 1.0f)
 	};
 
 	//Vertex + Colour list
