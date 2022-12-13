@@ -76,6 +76,11 @@ Graphics::Graphics(HWND windowHandle)
 		verCol[i] = { vertices[i], colours[i % ARRAYSIZE(colours)] };
 	}
 
+	for (int i = 0; i < ARRAYSIZE(indices); i++)
+	{
+		indices[i] -= 1;
+	}
+
 	DXGI_SWAP_CHAIN_DESC sd =
 	{
 		0, 0, 0, 0,
@@ -173,15 +178,15 @@ void Graphics::UpdateScreen()
 	pContext->PSSetShader(pPixelShader, nullptr, 0u);
 
 	//Goes through each cube and draws them
-	for (int i = 0; i < ARRAYSIZE(cubes); i++)
+	for (int i = 0; i < ARRAYSIZE(objects); i++)
 	{
-		float* cubePos = cubes[i].GetPosition();
+		float* objectPos = objects[i].GetPosition();
 		float rotation[3] = { 0.0f,0.0f,0.0f };
-		if (cubePos[0] == -5.0f)
+		if (objectPos[0] == -5.0f)
 		{
 			rotation[1] = 0.025f;
 		}
-		else if (cubePos[0] == 0.0f)
+		else if (objectPos[0] == 0.0f)
 		{
 			rotation[0] = 0.025f;
 		}
@@ -191,13 +196,9 @@ void Graphics::UpdateScreen()
 			rotation[1] = 0.025f;
 		}
 
-		cubes[i].Rotate(rotation);
-		DrawObject(cubes[i]);
+		objects[i].Rotate(rotation);
+		DrawObject(objects[i]);
 	}
-
-	RECT winRect;
-	GetClientRect(windowHandle, &winRect);
-	projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (winRect.right - winRect.left) / (FLOAT)(winRect.bottom - winRect.top), 0.01f, 100.0f);
 
 	//Swap back buffer
 	pSwap->Present(1u, 0u);
