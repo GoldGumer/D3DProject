@@ -14,9 +14,9 @@ void Graphics::InitBuffers()
 
 	//Vertex Buffer setup
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(verCol);
+	bufferDesc.ByteWidth = sizeof(SimpleVertex) * ARRAYSIZE(vertices);
 
-	D3D11_SUBRESOURCE_DATA subResData = { verCol, 0, 0 };
+	D3D11_SUBRESOURCE_DATA subResData = { vertices, 0, 0 };
 	pDevice->CreateBuffer(&bufferDesc, &subResData, &pVertexBuffer);
 
 	const UINT stride = sizeof(SimpleVertex);
@@ -71,9 +71,15 @@ Graphics::Graphics(HWND windowHandle)
 {
 	this->windowHandle = windowHandle;
 
+	RECT winRect;
+	GetClientRect(windowHandle, &winRect);
+
+	width = winRect.right - winRect.left;
+	height = winRect.bottom - winRect.top;
+
 	for (int i = 0; i < ARRAYSIZE(vertices); i++)
 	{
-		verCol[i] = { vertices[i], colours[i % ARRAYSIZE(colours)] };
+		vertices[i].AddColor(colours[i % ARRAYSIZE(colours)]);
 	}
 
 	for (int i = 0; i < ARRAYSIZE(indices); i++)
@@ -94,7 +100,7 @@ Graphics::Graphics(HWND windowHandle)
 	sd.BufferDesc.Width = 0;
 	sd.BufferDesc.Height = 0;
 	sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-	sd.BufferDesc.RefreshRate.Numerator = 0;
+	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 0;
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -125,49 +131,85 @@ Graphics::Graphics(HWND windowHandle)
 	pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
 
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget);
+
+	D3D11_DEPTH_STENCIL_DESC dsDesc =
+	{
+		TRUE,
+		D3D11_DEPTH_WRITE_MASK_ALL,
+		D3D11_COMPARISON_LESS
+	};
+
+	ID3D11DepthStencilState* dsState;
+	pDevice->CreateDepthStencilState(&dsDesc, &dsState);
+
+	pContext->OMSetDepthStencilState(dsState, 1u);
+	D3D11_TEXTURE2D_DESC depthTextureDesc =
+	{
+		(UINT)width,
+		(UINT)height,
+		1u,
+		1u,
+		DXGI_FORMAT_D32_FLOAT,
+		{ 1u, 0u },
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_DEPTH_STENCIL
+	};
+
+	pDevice->CreateTexture2D(&depthTextureDesc, nullptr, &pDepthTexture);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc =
+	{
+		DXGI_FORMAT_D32_FLOAT,
+		D3D11_DSV_DIMENSION_TEXTURE2D,
+		0u
+	};
+
+	pDevice->CreateDepthStencilView(pDepthTexture, &dsvDesc, &pDepthStencil);
+
 	pBackBuffer->Release();
-	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
+
+	pContext->OMSetRenderTargets(1, &pRenderTarget, pDepthStencil);
 	
 	//setup viewport
-	RECT winRect;
-	GetClientRect(windowHandle, &winRect);
-
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width = (FLOAT)(winRect.right - winRect.left);
-	viewport.Height = (FLOAT)(winRect.bottom - winRect.top);
+	viewport.Width = width;
+	viewport.Height = height;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
 
 	pContext->RSSetViewports(1u, &viewport);
 
 	//Constant Matrices setup
-	
 	view = XMMatrixLookAtLH(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-	projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (winRect.right - winRect.left) / (FLOAT)(winRect.bottom - winRect.top), 0.01f, 100.0f);
+	projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / height, 0.01f, 100.0f);
 }
 
 Graphics::~Graphics()
 {
 	//Buffers
-	pVertexBuffer->Release();
-	pIndexBuffer->Release();
-	pConstBuffer->Release();
+	if (pVertexBuffer) pVertexBuffer->Release();
+	if (pIndexBuffer) pIndexBuffer->Release();
+	if (pConstBuffer) pConstBuffer->Release();
+	if (pDepthStencil) pDepthStencil->Release();
+
+	if (pDepthTexture) pDepthTexture->Release();
 
 	//Shaders
-	pPixelShader->Release();
-	pVertexShader->Release();
-
-	pVertexLayout->Release();
+	if (pPixelShader) pPixelShader->Release();
+	if (pVertexShader) pVertexShader->Release();
+	if (pVertexLayout) pVertexLayout->Release();
 
 	//D3D Comms
-	pDevice->Release();
-	pSwap->Release();
-	pContext->Release();
+	if (pDevice) pDevice->Release();
+	if (pSwap) pSwap->Release();
+	if (pContext) pContext->Release();
 }
 
 void Graphics::UpdateScreen()
 {
 	ClearBuffer(bgRGB);
-	pContext->OMSetRenderTargets(1, &pRenderTarget, nullptr);
+	pContext->OMSetRenderTargets(1, &pRenderTarget, pDepthStencil);
 
 	//Primitive Triangle
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -180,23 +222,6 @@ void Graphics::UpdateScreen()
 	//Goes through each cube and draws them
 	for (int i = 0; i < ARRAYSIZE(objects); i++)
 	{
-		float* objectPos = objects[i].GetPosition();
-		float rotation[3] = { 0.0f,0.0f,0.0f };
-		if (objectPos[0] == -5.0f)
-		{
-			rotation[1] = 0.025f;
-		}
-		else if (objectPos[0] == 0.0f)
-		{
-			rotation[0] = 0.025f;
-		}
-		else
-		{
-			rotation[0] = 0.025f;
-			rotation[1] = 0.025f;
-		}
-
-		objects[i].Rotate(rotation);
 		DrawObject(objects[i]);
 	}
 
@@ -224,4 +249,5 @@ void Graphics::ClearBuffer(float rgb[3]) noexcept
 {
 	const float color[] = { rgb[0], rgb[1], rgb[2], 1.0f };
 	pContext->ClearRenderTargetView(pRenderTarget, color);
+	pContext->ClearDepthStencilView(pDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }

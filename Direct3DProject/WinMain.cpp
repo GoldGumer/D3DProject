@@ -47,7 +47,7 @@ int CALLBACK WinMain(
 	INT nCmdShow
 )
 {
-	Window window = Window(250, 50, 1280, 960, hInst, WndProc);
+	Window window = Window(0, 0, 1900, 1000, hInst, WndProc);
 
 	MSG msg;
 	bool result;
